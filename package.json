@@ -1,8 +1,8 @@
 {
   "name": "chad",
   "version": "0.1.0",
-  "description": "A brief description of your app",
-  "author": "Your Name",
+  "description": "A modern browser in the form of an Assistant",
+  "author": "Constitute",
   "private": true,
   "main": "public/electron.js",
   "homepage": "./",
@@ -12,6 +12,7 @@
     "@testing-library/user-event": "^13.5.0",
     "autoprefixer": "^10.4.14",
     "concurrently": "^8.0.1",
+    "electron-auto-launch": "^5.0.7",
     "postcss": "^8.4.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -55,10 +56,12 @@
     "mac": {
       "icon": "public/icon.png",
       "target": "dmg",
-      "arch": ["x64", "arm64"]
+      "extendInfo": {
+        "LSUIElement": 1
+      }
     },
     "win": {
-      "icon": "public/icon.ico",
+      "icon": "public/icon.png",
       "target": "nsis"
     }
   },

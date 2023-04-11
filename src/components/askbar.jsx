@@ -89,6 +89,7 @@ export const AskBar = () => {
     }
   };
 
+
   return (
     <div className="flex flex-col h-screen" onKeyDown={handleKeyDown}>
       {langInterfaceVisible === false && (
@@ -100,8 +101,8 @@ export const AskBar = () => {
             placeholder="Ask Chad - 'dare to imagine'"
             value={userInput}
             onChange={handleInputWithAdjustment}
-            className="w-full px-3 py-2 opacity-90 z-10 absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"
-            style={{ lineHeight: "1.5" }}
+            className="w-full px-3 py-1 opacity-90 z-10 absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"
+            style={{ lineHeight: "2" }}
           />
         </div>
       )}

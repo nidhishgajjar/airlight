@@ -1,10 +1,18 @@
-const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen } = require('electron');
+const AutoLaunch = require('electron-auto-launch');
 const path = require('path');
 let mainWindow;
 let tray;
+let newHRequest;
+let newHInterface;
 
 
 function createWindow() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const winY = 50;
+  newHRequest = height - winY - 250;
+  newHInterface = height - winY - 100;
+
 
   mainWindow = new BrowserWindow({
     width: 750,
@@ -14,21 +22,23 @@ function createWindow() {
     minHeight: 48,
     frame: false,
     show: false,
+    skipTaskbar: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1E1E1E' : '#FFFFFF',
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: true,
       webviewTag: true,
-      // preload: path.join(__dirname, '../build/preload.js'),
-      preload: path.join(__dirname, '../public/preload.js'),
+      preload: path.join(__dirname, '../build/preload.js'),
+      // preload: path.join(__dirname, '../public/preload.js'),
     },
     x: 30,
     y: 50,
   });
 
-  // mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
-  mainWindow.loadURL('http://localhost:3000');
+  mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
+  // mainWindow.loadURL('http://localhost:3000');
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.setOpacity(0.95);
 
@@ -38,19 +48,26 @@ function createWindow() {
 }
 
 app.on('ready', () => {
+  const autoLauncher = new AutoLaunch({ name: 'Chad' });
+  autoLauncher.isEnabled().then((isEnabled) => {
+    if (!isEnabled) autoLauncher.enable();
+  });
+  if (process.platform === 'darwin') {
+    app.dock.hide();
+  }
+
   createWindow();
 
   ipcMain.on('quickSearchRequested', (event, onRequest) => {
-    const newHeight = onRequest ? 900 : 48;
+    const newHeight = onRequest ? newHRequest : 48;
     const currentWidth = mainWindow.getBounds().width;
     mainWindow.setSize(currentWidth, newHeight, true);
   });
 
   ipcMain.on('showLangInterface', (event, interfaceVisible) => {
     if (interfaceVisible) {
-      newHeight = 900;
     const currentWidth = mainWindow.getBounds().width;
-    mainWindow.setSize(currentWidth, newHeight, true);
+    mainWindow.setSize(currentWidth, newHInterface, true);
     }
   });
 
@@ -60,9 +77,8 @@ app.on('ready', () => {
     mainWindow.setSize(mainWindow.getBounds().width, updatedWindowHeight, true);
   });
 
-  trayIcon = path.join(__dirname, '../build/link.png');
-  // trayIcon = nativeTheme.shouldUseDarkColors ? path.join(__dirname, '../build/link-white.png') : path.join(__dirname, '../build/link.png');
-  trayIcon = path.join(__dirname, 'link.png');
+  trayIcon = path.join(__dirname, '../build/trayicon-light.png');
+  // trayIcon = path.join(__dirname, '../public/trayicon-light.png');
   tray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -72,14 +88,14 @@ app.on('ready', () => {
       },
     },
     {
-      label: 'Quit',
+      label: 'Disable',
       click: () => {
         app.quit();
       },
     },
   ]);
 
-  tray.setToolTip('Electron React Menu Bar App');
+  tray.setToolTip('Ask Chad');
   tray.setContextMenu(contextMenu);
 
   globalShortcut.register('Alt+Space', () => {
@@ -92,9 +108,6 @@ app.on('ready', () => {
 
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
 });
 
 app.on('activate', () => {

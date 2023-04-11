@@ -12,5 +12,3 @@ contextBridge.exposeInMainWorld('electron', {
   
 });
 
-
-
