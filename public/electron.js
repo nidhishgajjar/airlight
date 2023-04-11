@@ -77,12 +77,12 @@ app.on('ready', () => {
     mainWindow.setSize(mainWindow.getBounds().width, updatedWindowHeight, true);
   });
 
-  trayIcon = path.join(__dirname, '../build/trayicon-light.png');
-  // trayIcon = path.join(__dirname, '../public/trayicon-light.png');
+  trayIcon = path.join(__dirname, '../build/trayiconTemplate.png');
+  // trayIcon = path.join(__dirname, '../public/trayiconTemplate.png');
   tray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Chad',
+      label: 'Ask Chad',
       click: () => {
         mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
       },
