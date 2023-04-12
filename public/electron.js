@@ -15,7 +15,7 @@ function createWindow() {
 
 
   mainWindow = new BrowserWindow({
-    width: 750,
+    width: 500,
     maxWidth: 750,
     minWidth: 500,
     height: 48,
@@ -66,8 +66,8 @@ app.on('ready', () => {
 
   ipcMain.on('showLangInterface', (event, interfaceVisible) => {
     if (interfaceVisible) {
-    const currentWidth = mainWindow.getBounds().width;
-    mainWindow.setSize(currentWidth, newHInterface, true);
+    const newWidth = 750;
+    mainWindow.setSize(newWidth, newHInterface, true);
     }
   });
 
@@ -77,12 +77,21 @@ app.on('ready', () => {
     mainWindow.setSize(mainWindow.getBounds().width, updatedWindowHeight, true);
   });
 
+  ipcMain.handle("startDrag", (event) => {
+    if (mainWindow) {
+      mainWindow.webContents.startDrag({
+        file: path.join(__dirname, "../build/drag.png"),
+        icon: path.join(__dirname, "../build/drag.png"),
+      });
+    }
+  });
+
   trayIcon = path.join(__dirname, '../build/trayiconTemplate.png');
   // trayIcon = path.join(__dirname, '../public/trayiconTemplate.png');
   tray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Ask Chad',
+      label: 'Ask Chad      ⌥ + space',
       click: () => {
         mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
       },

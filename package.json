@@ -1,6 +1,6 @@
 {
   "name": "chad",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A modern browser in the form of an Assistant",
   "author": "Constitute",
   "private": true,
@@ -31,7 +31,7 @@
     "start": "npm run react-start",
     "electron": "electron .",
     "build": "npm run react-build",
-    "build-mac": "electron-builder --mac",
+    "build-mac": "electron-builder --mac --arm64 --x64",
     "build-win": "electron-builder --win",
     "electron-build": "electron-builder"
   },
