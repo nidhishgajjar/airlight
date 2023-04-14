@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen } = require('electron');
 const AutoLaunch = require('electron-auto-launch');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 let mainWindow;
 let tray;
@@ -45,7 +46,10 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  autoUpdater.checkForUpdatesAndNotify();
 }
+
 
 app.on('ready', () => {
   const autoLauncher = new AutoLaunch({ name: 'Chad' });
@@ -108,11 +112,32 @@ app.on('ready', () => {
   tray.setContextMenu(contextMenu);
 
   globalShortcut.register('Alt+Space', () => {
-    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+    if (mainWindow.isVisible() && !mainWindow.isFocused()) {
+      mainWindow.show();
+      mainWindow.focus();
+    } else if (mainWindow.isVisible()) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+    }
   });
   globalShortcut.register('Esc', () => {
     mainWindow.hide();
   });
+
+
+  autoUpdater.on('update-available', () => {
+    mainWindow.webContents.send('update-available');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow.webContents.send('update-downloaded');
+  });
+
+  ipcMain.on('restart-app', () => {
+    autoUpdater.quitAndInstall();
+  });
+
 });
 
 

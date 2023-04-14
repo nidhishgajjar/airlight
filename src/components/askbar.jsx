@@ -72,6 +72,7 @@ export const AskBar = () => {
     ) {
       event.preventDefault();
       handleClick();
+      inputRef.current.style.height = "";
     }
     if (event.key === "Enter" && event.getModifierState("Meta")) {
       event.preventDefault();
