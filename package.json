@@ -1,6 +1,6 @@
 {
   "name": "chad",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A modern browser in the form of an Assistant",
   "author": "Constitute",
   "private": true,
@@ -34,7 +34,8 @@
     "build": "npm run react-build",
     "build-mac": "electron-builder --mac --arm64 --x64",
     "build-win": "electron-builder --win",
-    "electron-build": "electron-builder"
+    "electron-build": "electron-builder",
+    "release": "npm run build && electron-builder --publish always"
   },
   "build": {
     "productName": "Chad",
@@ -68,6 +69,9 @@
     "publish": [ 
       {
         "provider": "github",
+        "repo": "chad",
+        "owner": "nidhishgajjar",
+        "token": "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",
         "releaseType": "release"
       }
 
