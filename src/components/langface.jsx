@@ -227,7 +227,7 @@ export const LangFace = ({ shiftEnterUserInput }) => {
               chat.openai.com
             </a>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <div className="absolute inset-y-0 left-0 pl-3 z-50 flex items-center">
                 <FaSearch className="dark:text-neutral-500 text-neutral-300" />
               </div>
               <input

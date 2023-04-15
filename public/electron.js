@@ -1,11 +1,52 @@
-const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen } = require('electron');
+require('electron-log').transports.file.level = 'info';
+const log = require('electron-log');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen, dialog } = require('electron');
 const AutoLaunch = require('electron-auto-launch');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const appVersion = require('../package.json').version;
 let mainWindow;
 let tray;
 let newHRequest;
 let newHInterface;
+const windowPositions = {};
+
+function getDisplayIdentifier(display) {
+  return `${display.id}-${display.bounds.x}-${display.bounds.y}`;
+}
+
+function showWindowOnActiveDisplay() {
+  const activeDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+  const displayIdentifier = getDisplayIdentifier(activeDisplay);
+
+  let position = windowPositions[displayIdentifier];
+
+  if (!position) {
+    const { x, y } = activeDisplay.bounds;
+    const offsetX = 30;
+    const offsetY = 50;
+    position = [x + offsetX, y + offsetY];
+  }
+
+  if (mainWindow) {
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    mainWindow.setPosition(...position);
+    mainWindow.show();
+    mainWindow.focus();
+    setTimeout(() => {
+      mainWindow.setVisibleOnAllWorkspaces(false, { visibleOnFullScreen: true });
+    }, 100);
+  } else {
+    createWindow(...position);
+  }
+}
+
+function setWindowBackgroundColor() {
+  if (mainWindow) {
+    const backgroundColor = nativeTheme.shouldUseDarkColors ? '#1E1E1E' : '#FFFFFF';
+    mainWindow.setBackgroundColor(backgroundColor);
+  }
+}
 
 
 function createWindow() {
@@ -28,7 +69,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: true,
+      enableRemoteModule: false,
       webviewTag: true,
       preload: path.join(__dirname, '../build/preload.js'),
       // preload: path.join(__dirname, '../public/preload.js'),
@@ -47,11 +88,19 @@ function createWindow() {
     mainWindow = null;
   });
 
-  autoUpdater.checkForUpdatesAndNotify();
 }
 
 
+
+
 app.on('ready', () => {
+  console.log('App version: ', appVersion);
+  log.info('App version: ', appVersion);
+  const updateInterval = 60 * 60 * 1000; // 1 hour in milliseconds
+    setInterval(() => {
+      autoUpdater.checkForUpdatesAndNotify();
+    }, updateInterval);
+
   const autoLauncher = new AutoLaunch({ name: 'Chad' });
   autoLauncher.isEnabled().then((isEnabled) => {
     if (!isEnabled) autoLauncher.enable();
@@ -61,6 +110,46 @@ app.on('ready', () => {
   }
 
   createWindow();
+  setWindowBackgroundColor();
+
+  nativeTheme.on('updated', () => {
+    setWindowBackgroundColor();
+  });
+
+
+  autoUpdater.on('update-available', () => {
+    log.info('Update available');
+    mainWindow.webContents.send('update-available');
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    log.info(`Download speed: ${progressObj.bytesPerSecond}`);
+    log.info(`Downloaded ${progressObj.percent}%`);
+    log.info(`Download remaining time: ${progressObj.remaining} seconds`);
+  });
+
+  autoUpdater.on('error', (error) => {
+    log.info('Error during update:', error);
+    mainWindow.webContents.send('update-error', error);
+  });
+
+  autoUpdater.on('update-downloaded', async () => {
+    log.info('Update downloaded');
+    mainWindow.webContents.send('update-downloaded');
+
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: ['Install and Restart', 'Later'],
+      defaultId: 0,
+      title: 'Update Ready',
+      message: 'A new update is ready to install. Do you want to install it now and restart the application?',
+    });
+
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall(false, true);
+    }
+  });
+
 
   ipcMain.on('quickSearchRequested', (event, onRequest) => {
     const newHeight = onRequest ? newHRequest : 48;
@@ -101,6 +190,12 @@ app.on('ready', () => {
       },
     },
     {
+      label: 'Check for updates',
+      click: () => {
+        autoUpdater.checkForUpdatesAndNotify();
+      },
+    },
+    {
       label: 'Disable',
       click: () => {
         app.quit();
@@ -113,36 +208,33 @@ app.on('ready', () => {
 
   globalShortcut.register('Alt+Space', () => {
     if (mainWindow.isVisible() && !mainWindow.isFocused()) {
+      showWindowOnActiveDisplay();
       mainWindow.show();
       mainWindow.focus();
     } else if (mainWindow.isVisible()) {
+      const activeDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+      const displayIdentifier = getDisplayIdentifier(activeDisplay);
+      windowPositions[displayIdentifier] = mainWindow.getPosition();
       mainWindow.hide();
     } else {
+      showWindowOnActiveDisplay();
       mainWindow.show();
     }
   });
+
   globalShortcut.register('Esc', () => {
     mainWindow.hide();
-  });
-
-
-  autoUpdater.on('update-available', () => {
-    mainWindow.webContents.send('update-available');
-  });
-
-  autoUpdater.on('update-downloaded', () => {
-    mainWindow.webContents.send('update-downloaded');
-  });
-
-  ipcMain.on('restart-app', () => {
-    autoUpdater.quitAndInstall();
   });
 
 });
 
 
 app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
+
 
 app.on('activate', () => {
   if (mainWindow === null) {

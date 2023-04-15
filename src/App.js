@@ -13,7 +13,9 @@ function App() {
       <AskBar />
       <TopBar />
       <Results />
-      <UpdateNotifications />
+      {/* <div>
+        <UpdateNotifications />
+      </div> */}
     </div>
   );
 }
