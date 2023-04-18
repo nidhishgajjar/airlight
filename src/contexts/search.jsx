@@ -29,41 +29,13 @@ export const SearchProvider = ({ children }) => {
     setAllSearchResults,
     setResponse,
     setLoading,
-    setShouldScroll,
-    shouldScroll,
+    showHistory,
+    setShowHistory,
     fetchResponse,
     fetchSearchResults,
     fetchBingResults,
     setWebSearchResults,
   } = useContext(FetchContext);
-
-  const [userScrolled, setUserScrolled] = useState(false);
-
-  const handleUserScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    const threshold = 10;
-    const scrollDifference = scrollHeight - (scrollTop + clientHeight);
-    const userScrolledUp = scrollDifference > threshold;
-    setUserScrolled(userScrolledUp);
-  };
-  useEffect(() => {
-    const currentRef = conversationRef.current;
-
-    if (currentRef) {
-      currentRef.addEventListener("scroll", handleUserScroll);
-
-      return () => {
-        currentRef.removeEventListener("scroll", handleUserScroll);
-      };
-    }
-  }, [conversationRef]);
-
-  useEffect(() => {
-    if (conversationRef && shouldScroll && !userScrolled) {
-      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
-      setShouldScroll(false);
-    }
-  }, [response, shouldScroll, setShouldScroll, conversationRef, userScrolled]);
 
   useEffect(() => {
     setPreviousConversations(
@@ -103,6 +75,7 @@ export const SearchProvider = ({ children }) => {
   const handleClick = async () => {
     try {
       setLoading(true);
+      setShowHistory(false);
       setResultLoading(true);
       setQuestionsLoading(true);
 
@@ -157,6 +130,7 @@ export const SearchProvider = ({ children }) => {
     setAllSearchResults([]);
     setPreviousConversations({});
     setLoading(false);
+    setShowHistory(false);
     setStreamCompleted(false);
     setWebSearchResults([]);
     setAllRelatedQuestions([]);

@@ -13,9 +13,9 @@ export const FetchSearchResultsProvider = ({ children }) => {
   const [language, setLanguage] = useState("English");
   const [streamCompleted, setStreamCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [resultLoading, setResultLoading] = useState(false);
-  const [shouldScroll, setShouldScroll] = useState(false);
   const [relatedQuestions, setRelatedQuestions] = useState([]);
 
   const { langInterfaceVisible } = useContext(LangInterfaceContext);
@@ -77,10 +77,8 @@ export const FetchSearchResultsProvider = ({ children }) => {
         }
 
         setStreamCompleted(false);
-        if (langInterfaceVisible === false) {
-          setShouldScroll(true);
-        }
         setLoading(true);
+        setShowHistory(false);
       }
       fetchRelated(prompt, chunkResponse);
     } catch (err) {
@@ -92,6 +90,7 @@ export const FetchSearchResultsProvider = ({ children }) => {
       setLoading(false);
       setStreamCompleted(false);
     }
+    setShowHistory(true);
   };
 
   const fetchSearchResults = async (prompt) => {
@@ -172,7 +171,6 @@ export const FetchSearchResultsProvider = ({ children }) => {
         response,
         streamCompleted,
         loading,
-        shouldScroll,
         webSearchResults,
         language,
         allSearchResults,
@@ -182,6 +180,8 @@ export const FetchSearchResultsProvider = ({ children }) => {
         langInterfaceResponse,
         langInterfaceWebSearch,
         langInterfaceQuestions,
+        showHistory,
+        setShowHistory,
         setLangInterfaceQuestions,
         setLangInterfaceWebSearch,
         setLangInterfaceResponse,
@@ -191,7 +191,6 @@ export const FetchSearchResultsProvider = ({ children }) => {
         setResponse,
         setLoading,
         setStreamCompleted,
-        setShouldScroll,
         setWebSearchResults,
         setAllSearchResults,
         setRelatedQuestions,

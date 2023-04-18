@@ -1,6 +1,7 @@
 require('electron-log').transports.file.level = 'info';
+const ua = require('universal-analytics');
 const log = require('electron-log');
-const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen, dialog } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen, dialog, shell } = require('electron');
 const AutoLaunch = require('electron-auto-launch');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
@@ -10,6 +11,21 @@ let tray;
 let newHRequest;
 let newHInterface;
 const windowPositions = {};
+
+async function showUpdateDialog(downloadUrl) {
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: 'question',
+    buttons: ['Download now', 'Later'],
+    defaultId: 0,
+    title: 'Update Available',
+    message: 'A new update is available. Do you want to download it now?',
+  });
+
+  if (result.response === 0) {
+    shell.openExternal(downloadUrl);
+  }
+}
+
 
 function getDisplayIdentifier(display) {
   return `${display.id}-${display.bounds.x}-${display.bounds.y}`;
@@ -94,12 +110,13 @@ function createWindow() {
 
 
 app.on('ready', () => {
-  console.log('App version: ', appVersion);
   log.info('App version: ', appVersion);
+  const user = ua('UA-242008654-1'); // Replace with your actual tracking ID
+  user.pageview('/').send();
   const updateInterval = 60 * 60 * 1000; // 1 hour in milliseconds
-    setInterval(() => {
-      autoUpdater.checkForUpdatesAndNotify();
-    }, updateInterval);
+  setInterval(() => {
+    autoUpdater.checkForUpdates();
+  }, updateInterval);
 
   const autoLauncher = new AutoLaunch({ name: 'Chad' });
   autoLauncher.isEnabled().then((isEnabled) => {
@@ -119,37 +136,43 @@ app.on('ready', () => {
 
   autoUpdater.on('update-available', () => {
     log.info('Update available');
-    mainWindow.webContents.send('update-available');
+    const downloadUrl = 'https://www.constitute.ai/42a36fef4cecb27c87';
+    showUpdateDialog(downloadUrl);
   });
 
-  autoUpdater.on('download-progress', (progressObj) => {
-    log.info(`Download speed: ${progressObj.bytesPerSecond}`);
-    log.info(`Downloaded ${progressObj.percent}%`);
-    log.info(`Download remaining time: ${progressObj.remaining} seconds`);
+
+  // autoUpdater.on('download-progress', (progressObj) => {
+  //   log.info(`Download speed: ${progressObj.bytesPerSecond}`);
+  //   log.info(`Downloaded ${progressObj.percent}%`);
+  //   log.info(`Download remaining time: ${progressObj.remaining} seconds`);
+  // });
+
+  // autoUpdater.on('error', (error) => {
+  //   log.info('Error during update:', error);
+  //   mainWindow.webContents.send('update-error', error);
+  // });
+
+  // autoUpdater.on('update-downloaded', async () => {
+  //   log.info('Update downloaded');
+  //   mainWindow.webContents.send('update-downloaded');
+
+  //   const result = await dialog.showMessageBox(mainWindow, {
+  //     type: 'question',
+  //     buttons: ['Download now', 'Later'],
+  //     defaultId: 0,
+  //     title: 'Update Ready',
+  //     message: 'A new update is ready to install. Do you want to install it now and restart the application?',
+  //   });
+
+  //   if (result.response === 0) {
+  //     autoUpdater.quitAndInstall(false, true);
+  //     }
+  //   });
+
+  ipcMain.on('open-url', (event, url) => {
+    shell.openExternal(url);
+    user.event('App', 'Clicked on External Link').send();
   });
-
-  autoUpdater.on('error', (error) => {
-    log.info('Error during update:', error);
-    mainWindow.webContents.send('update-error', error);
-  });
-
-  autoUpdater.on('update-downloaded', async () => {
-    log.info('Update downloaded');
-    mainWindow.webContents.send('update-downloaded');
-
-    const result = await dialog.showMessageBox(mainWindow, {
-      type: 'question',
-      buttons: ['Install and Restart', 'Later'],
-      defaultId: 0,
-      title: 'Update Ready',
-      message: 'A new update is ready to install. Do you want to install it now and restart the application?',
-    });
-
-    if (result.response === 0) {
-      autoUpdater.quitAndInstall(false, true);
-    }
-  });
-
 
   ipcMain.on('quickSearchRequested', (event, onRequest) => {
     const newHeight = onRequest ? newHRequest : 48;
@@ -161,6 +184,7 @@ app.on('ready', () => {
     if (interfaceVisible) {
     const newWidth = 750;
     mainWindow.setSize(newWidth, newHInterface, true);
+    user.event('App', 'Lang Interface Enabled').send();
     }
   });
 
@@ -192,7 +216,7 @@ app.on('ready', () => {
     {
       label: 'Check for updates',
       click: () => {
-        autoUpdater.checkForUpdatesAndNotify();
+        autoUpdater.checkForUpdates();
       },
     },
     {
@@ -210,15 +234,18 @@ app.on('ready', () => {
     if (mainWindow.isVisible() && !mainWindow.isFocused()) {
       showWindowOnActiveDisplay();
       mainWindow.show();
+      user.event('App', 'Opened').send();
       mainWindow.focus();
     } else if (mainWindow.isVisible()) {
       const activeDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
       const displayIdentifier = getDisplayIdentifier(activeDisplay);
       windowPositions[displayIdentifier] = mainWindow.getPosition();
       mainWindow.hide();
+      user.event('App', 'Hidden').send();
     } else {
       showWindowOnActiveDisplay();
       mainWindow.show();
+      user.event('App', 'Opened').send();
     }
   });
 

@@ -1,7 +1,7 @@
 {
   "name": "chad",
-  "version": "1.0.1",
-  "description": "A modern browser in the form of an Assistant",
+  "version": "1.0.0",
+  "description": "Easiest way to access ChatGPT",
   "author": "Constitute",
   "private": true,
   "main": "public/electron.js",
@@ -22,6 +22,7 @@
     "react-modal": "^3.16.1",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.3.1",
+    "universal-analytics": "^0.5.3",
     "uuid": "^9.0.0",
     "wait-on": "^7.0.1",
     "xml2js": "^0.5.0"
@@ -60,11 +61,10 @@
     ],
     "mac": {
       "icon": "public/icon.png",
-      "target":
-        [
-          "dmg",
-          "zip"
-        ],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "extendInfo": {
         "LSUIElement": 1
       }
