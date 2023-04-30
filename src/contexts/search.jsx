@@ -6,6 +6,7 @@ import React, {
   createContext,
 } from "react";
 import FetchContext from "./fetch";
+import LangInterfaceContext from "./langfacecontext";
 import { v4 as uuid } from "uuid";
 
 const SearchContext = createContext();
@@ -18,6 +19,7 @@ export const SearchProvider = ({ children }) => {
   const inputRef = useRef(null);
   const conversationRef = useRef(null);
   const [previousConversations, setPreviousConversations] = useState({});
+  const { setQuickSearchVisible } = useContext(LangInterfaceContext);
   const {
     response,
     relatedQuestions,
@@ -29,7 +31,6 @@ export const SearchProvider = ({ children }) => {
     setAllSearchResults,
     setResponse,
     setLoading,
-    showHistory,
     setShowHistory,
     fetchResponse,
     fetchSearchResults,
@@ -135,6 +136,7 @@ export const SearchProvider = ({ children }) => {
     setWebSearchResults([]);
     setAllRelatedQuestions([]);
     setRelatedQuestions([]);
+    setQuickSearchVisible(false);
   };
 
   return (

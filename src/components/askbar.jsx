@@ -5,7 +5,7 @@ import LangInterfaceContext from "../contexts/langfacecontext";
 import { LangFace } from "./langface";
 
 export const AskBar = () => {
-  const { langInterfaceVisible, setLangInterfaceVisible } =
+  const { langInterfaceVisible, setLangInterfaceVisible, quickSearchVisible, setQuickSearchVisible, changeShortcutVisible } =
     useContext(LangInterfaceContext);
 
   const {
@@ -51,30 +51,55 @@ export const AskBar = () => {
 
   useEffect(() => {
     if (window.electron) {
-      window.electron.ipcRenderer.send(
+      if (langInterfaceVisible === false) {
+         window.electron.ipcRenderer.send(
         "quickSearchRequested",
         allSearchPrompts.length >= 1
       );
-      window.electron.ipcRenderer.send(
-        "showLangInterface",
-        langInterfaceVisible === true
-      );
+      }
+        window.electron.ipcRenderer.send(
+          "showLangInterface",
+          langInterfaceVisible === true
+        );
     }
-  }, [allSearchPrompts, langInterfaceVisible]);
+  }, [allSearchPrompts, langInterfaceVisible, quickSearchVisible]);
 
   const handleKeyDown = async (event) => {
     if (
       event.key === "Enter" &&
-      !event.shiftKey &&
-      !event.getModifierState("Meta") &&
+      event.getModifierState("Meta") &&
+      quickSearchVisible === false &&
       loading === false &&
-      userInput
+      userInput &&
+      changeShortcutVisible === false
     ) {
       event.preventDefault();
       handleClick();
       inputRef.current.style.height = "";
+      setQuickSearchVisible(true);
     }
-    if (event.key === "Enter" && event.getModifierState("Meta")) {
+     if (
+       event.key === "Enter" &&
+       !event.shiftKey &&
+       !event.getModifierState("Meta") &&
+       quickSearchVisible === true &&
+       loading === false &&
+       userInput && 
+       changeShortcutVisible === false
+     ) {
+       event.preventDefault();
+       handleClick();
+       inputRef.current.style.height = "";
+       setQuickSearchVisible(true);
+       setShiftEnterUserInput(userInput);
+     }
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey &&
+      !event.getModifierState("Meta") &&
+      quickSearchVisible === false &&
+      changeShortcutVisible === false
+    ) {
       event.preventDefault();
       handleClearClick();
       handleClickLangInterface();
@@ -93,7 +118,7 @@ export const AskBar = () => {
 
   return (
     <div className="flex flex-col h-screen" onKeyDown={handleKeyDown}>
-      {langInterfaceVisible === false && (
+      {langInterfaceVisible === false && changeShortcutVisible === false && (
         <div>
           <textarea
             ref={inputRef}
@@ -102,12 +127,15 @@ export const AskBar = () => {
             placeholder="Ask Chad - 'dare to imagine'"
             value={userInput}
             onChange={handleInputWithAdjustment}
-            className="w-full px-3 py-1 opacity-90 z-10 absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"
+            className="w-full px-3 py-1 opacity-90  absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"
             style={{ lineHeight: "2" }}
           />
         </div>
       )}
-      <LangFace shiftEnterUserInput={shiftEnterUserInput} />
+      <LangFace
+        shiftEnterUserInput={shiftEnterUserInput}
+        setShiftEnterUserInput={setShiftEnterUserInput}
+      />
     </div>
   );
 };

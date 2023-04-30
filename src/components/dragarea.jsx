@@ -1,8 +1,6 @@
-import React, { useContext } from "react";
-import LangInterfaceContext from "../contexts/langfacecontext";
+import React from "react";
 
 export const DragArea = () => {
-  const { langInterfaceVisible, setLangInterfaceVisible } = useContext( LangInterfaceContext );
   const handleMouseDown = (e) => {
     if (e.button === 0) {
       window.electron.ipcRenderer.invoke("startDrag");
@@ -19,7 +17,7 @@ export const DragArea = () => {
             userSelect: "none",
           }}>
           <div
-            className=" w-full mt-10 h-7 items-center flex bg-inherit"
+            className=" w-full mt-10 h-5 items-center flex bg-inherit"
             onMouseDown={handleMouseDown}
             style={{
               WebkitAppRegion: "drag",

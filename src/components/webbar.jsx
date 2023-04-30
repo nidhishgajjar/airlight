@@ -20,7 +20,7 @@ export const WebBar = () => {
   }
 
   return (
-    <div className="mt-5 md:mt-10 w-full pr-10 flex items-center overflow-x-auto py-2">
+    <div className="mt-5 md:mt-10 w-full pr-10 flex items-center overflow-x-auto pt-2">
       <div className="flex space-x-4 pb-2">
         {webSearchResults.map((result, index) => (
           <a

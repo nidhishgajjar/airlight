@@ -13,8 +13,8 @@ import {
 
 Modal.setAppElement("#root");
 
-export const LangFace = ({ shiftEnterUserInput }) => {
-  const { langInterfaceVisible, setLangInterfaceVisible } =
+export const LangFace = ({ shiftEnterUserInput, setShiftEnterUserInput }) => {
+  const { langInterfaceVisible, setLangInterfaceVisible, changeShortcutVisible } =
     useContext(LangInterfaceContext);
 
   const [input, setInput] = useState("");
@@ -46,6 +46,7 @@ export const LangFace = ({ shiftEnterUserInput }) => {
   const handleBackArrowClick = () => {
     setLangInterfaceVisible(false);
     setWebViewLoading(true);
+    setShiftEnterUserInput("");
   };
 
   const handleClearAll = () => {
@@ -115,7 +116,7 @@ export const LangFace = ({ shiftEnterUserInput }) => {
     }, 500);
   }, [webviewRef])
 
-  const handleKeyDown = (event, clickButton) => {
+  const handleKeyDown = (event) => {
     if (event.key === "Enter" && loading === false && input) {
       event.preventDefault();
       handleQuery(input);
@@ -123,7 +124,7 @@ export const LangFace = ({ shiftEnterUserInput }) => {
   };
 
   const injectEnterKeyListener = useCallback(async () => {
-    const selector = 'textarea[placeholder="Send a message..."]';
+    const selector = 'textarea[placeholder="Send a message."]';
     const enterKeyListenerScript = `
       document.addEventListener('keydown', (event) => {
         const textarea = document.querySelector('${selector}');
@@ -159,7 +160,7 @@ export const LangFace = ({ shiftEnterUserInput }) => {
   const langInterfaceAsk = useCallback (async (shiftEnterUserInput) => {
     if (shiftEnterUserInput) {
       // Replace 'selector' with the appropriate CSS selector for the third-party website's input field
-      const selector = 'textarea[placeholder="Send a message..."]';
+      const selector = 'textarea[placeholder="Send a message."]';
 
       const setInputValueScript = `
       document.querySelector('${selector}').value = \`${shiftEnterUserInput.replace(
@@ -210,7 +211,7 @@ export const LangFace = ({ shiftEnterUserInput }) => {
 
   return (
     <div className="w-full h-full flex flex-col font-helvetica-neue">
-      {langInterfaceVisible && (
+      {langInterfaceVisible && changeShortcutVisible === false && (
         <div className="w-full h-full">
           <div className="h-14 w-full bg-neutral-200 dark:bg-neutral-900 flex justify-around items-center fixed">
             <button className="active:scale-95" onClick={handleBackArrowClick}>

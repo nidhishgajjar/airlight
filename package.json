@@ -1,6 +1,6 @@
 {
   "name": "chad",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Easiest way to access ChatGPT",
   "author": "Constitute",
   "private": true,
@@ -12,14 +12,18 @@
     "@testing-library/user-event": "^13.5.0",
     "autoprefixer": "^10.4.14",
     "concurrently": "^8.0.1",
+    "dotenv": "^16.0.3",
     "electron-auto-launch": "^5.0.7",
+    "electron-localshortcut": "^3.2.1",
     "electron-log": "^4.4.8",
+    "electron-notarize": "^1.2.2",
     "electron-updater": "^5.3.0",
     "postcss": "^8.4.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.8.0",
     "react-modal": "^3.16.1",
+    "react-router-dom": "^6.11.0",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.3.1",
     "universal-analytics": "^0.5.3",
@@ -61,6 +65,10 @@
     ],
     "mac": {
       "icon": "public/icon.png",
+      "category": "public.app-category.productivity",
+      "type": "distribution",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
       "target": [
         "dmg",
         "zip"
@@ -68,6 +76,9 @@
       "extendInfo": {
         "LSUIElement": 1
       }
+    },
+    "dmg": {
+      "sign": false
     },
     "win": {
       "icon": "public/icon.png",
@@ -96,7 +107,7 @@
     ]
   },
   "devDependencies": {
-    "electron": "^24.0.0",
+    "electron": "^24.1.2",
     "electron-builder": "^23.6.0"
   }
 }

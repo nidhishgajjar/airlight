@@ -1,9 +1,10 @@
 require('electron-log').transports.file.level = 'info';
 const ua = require('universal-analytics');
 const log = require('electron-log');
-const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen, dialog, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen, dialog, shell, clipboard } = require('electron');
 const AutoLaunch = require('electron-auto-launch');
 const { autoUpdater } = require('electron-updater');
+const localShortcut = require('electron-localshortcut');
 const path = require('path');
 const appVersion = require('../package.json').version;
 let mainWindow;
@@ -11,19 +12,32 @@ let tray;
 let newHRequest;
 let newHInterface;
 const windowPositions = {};
+let userShortcut = "Alt+Space";
+const user = ua('UA-242008654-1');
 
-async function showUpdateDialog(downloadUrl) {
-  const result = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons: ['Download now', 'Later'],
-    defaultId: 0,
-    title: 'Update Available',
-    message: 'A new update is available. Do you want to download it now?',
+
+
+function registerUserShortcut(shortcut) {
+  globalShortcut.unregisterAll();
+
+  globalShortcut.register(shortcut, () => {
+    if (mainWindow.isVisible() && !mainWindow.isFocused()) {
+      showWindowOnActiveDisplay();
+      mainWindow.show();
+      user.event('App', 'Opened').send();
+      mainWindow.focus();
+    } else if (mainWindow.isVisible()) {
+      const activeDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
+      const displayIdentifier = getDisplayIdentifier(activeDisplay);
+      windowPositions[displayIdentifier] = mainWindow.getPosition();
+      mainWindow.hide();
+      user.event('App', 'Hidden').send();
+    } else {
+      showWindowOnActiveDisplay();
+      mainWindow.show();
+      user.event('App', 'Opened').send();
+    }
   });
-
-  if (result.response === 0) {
-    shell.openExternal(downloadUrl);
-  }
 }
 
 
@@ -95,13 +109,18 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
-  // mainWindow.loadURL('http://localhost:3000');
+  // mainWindow.loadURL('http://localhost:3001');
   // mainWindow.webContents.openDevTools();
 
   mainWindow.setOpacity(0.95);
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+
+  localShortcut.register(mainWindow, 'Esc', () => {
+    mainWindow.hide();
   });
 
 }
@@ -111,7 +130,6 @@ function createWindow() {
 
 app.on('ready', () => {
   log.info('App version: ', appVersion);
-  const user = ua('UA-242008654-1'); // Replace with your actual tracking ID
   user.pageview('/').send();
   const updateInterval = 60 * 60 * 1000; // 1 hour in milliseconds
   setInterval(() => {
@@ -133,41 +151,33 @@ app.on('ready', () => {
     setWindowBackgroundColor();
   });
 
-
-  autoUpdater.on('update-available', () => {
-    log.info('Update available');
-    const downloadUrl = 'https://www.constitute.ai/42a36fef4cecb27c87';
-    showUpdateDialog(downloadUrl);
+  autoUpdater.on('download-progress', (progressObj) => {
+    log.info(`Download speed: ${progressObj.bytesPerSecond}`);
+    log.info(`Downloaded ${progressObj.percent}%`);
+    log.info(`Download remaining time: ${progressObj.remaining} seconds`);
   });
 
+  autoUpdater.on('error', (error) => {
+    log.info('Error during update:', error);
+    mainWindow.webContents.send('update-error', error);
+  });
 
-  // autoUpdater.on('download-progress', (progressObj) => {
-  //   log.info(`Download speed: ${progressObj.bytesPerSecond}`);
-  //   log.info(`Downloaded ${progressObj.percent}%`);
-  //   log.info(`Download remaining time: ${progressObj.remaining} seconds`);
-  // });
+  autoUpdater.on('update-downloaded', async () => {
+    log.info('Update downloaded');
+    mainWindow.webContents.send('update-downloaded');
 
-  // autoUpdater.on('error', (error) => {
-  //   log.info('Error during update:', error);
-  //   mainWindow.webContents.send('update-error', error);
-  // });
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: ['Install now', 'Later'],
+      defaultId: 0,
+      title: 'Update Ready',
+      message: 'A new update is ready to install. Do you want to install it now and restart the application?',
+    });
 
-  // autoUpdater.on('update-downloaded', async () => {
-  //   log.info('Update downloaded');
-  //   mainWindow.webContents.send('update-downloaded');
-
-  //   const result = await dialog.showMessageBox(mainWindow, {
-  //     type: 'question',
-  //     buttons: ['Download now', 'Later'],
-  //     defaultId: 0,
-  //     title: 'Update Ready',
-  //     message: 'A new update is ready to install. Do you want to install it now and restart the application?',
-  //   });
-
-  //   if (result.response === 0) {
-  //     autoUpdater.quitAndInstall(false, true);
-  //     }
-  //   });
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall(false, true);
+      }
+    });
 
   ipcMain.on('open-url', (event, url) => {
     shell.openExternal(url);
@@ -214,6 +224,12 @@ app.on('ready', () => {
       },
     },
     {
+      label: 'Change Shortcut',
+      click: () => {
+        mainWindow.webContents.send('toggle-change-shortcut'); 
+      },
+    },
+    {
       label: 'Check for updates',
       click: () => {
         autoUpdater.checkForUpdates();
@@ -230,28 +246,25 @@ app.on('ready', () => {
   tray.setToolTip('Ask Chad');
   tray.setContextMenu(contextMenu);
 
-  globalShortcut.register('Alt+Space', () => {
-    if (mainWindow.isVisible() && !mainWindow.isFocused()) {
-      showWindowOnActiveDisplay();
-      mainWindow.show();
-      user.event('App', 'Opened').send();
-      mainWindow.focus();
-    } else if (mainWindow.isVisible()) {
-      const activeDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-      const displayIdentifier = getDisplayIdentifier(activeDisplay);
-      windowPositions[displayIdentifier] = mainWindow.getPosition();
-      mainWindow.hide();
-      user.event('App', 'Hidden').send();
-    } else {
-      showWindowOnActiveDisplay();
-      mainWindow.show();
-      user.event('App', 'Opened').send();
-    }
+  registerUserShortcut(userShortcut);
+
+  ipcMain.on('update-custom-shortcut', (event, newShortcut) => {
+  userShortcut = newShortcut;
+    registerUserShortcut(userShortcut);
   });
 
-  globalShortcut.register('Esc', () => {
-    mainWindow.hide();
+  ipcMain.on("set-window-height", (event, newHeight) => {
+    const [width, _] = mainWindow.getSize();
+    mainWindow.setSize(width, newHeight);
+    mainWindow.show();
   });
+
+  ipcMain.on("reset-window-height", () => {
+    const [width, _] = mainWindow.getSize();
+    mainWindow.setSize(width, newHInterface); // Assuming 48 is your default window height
+  });
+
+
 
 });
 
