@@ -1,5 +1,5 @@
 require('electron-log').transports.file.level = 'info';
-const ua = require('universal-analytics');
+// const ua = require('universal-analytics');
 const log = require('electron-log');
 const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen, dialog, shell, clipboard } = require('electron');
 const AutoLaunch = require('electron-auto-launch');
@@ -93,7 +93,7 @@ function createWindow() {
     height: 48,
     minHeight: 48,
     frame: false,
-    show: false,
+    show: true,
     skipTaskbar: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1E1E1E' : '#FFFFFF',
     webPreferences: {
@@ -109,7 +109,7 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
-  // mainWindow.loadURL('http://localhost:3001');
+  // mainWindow.loadURL('http://localhost:3000');
   // mainWindow.webContents.openDevTools();
 
   mainWindow.setOpacity(0.95);
