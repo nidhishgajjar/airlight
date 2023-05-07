@@ -1,5 +1,6 @@
 require('electron-log').transports.file.level = 'info';
-// const ua = require('universal-analytics');
+const os = require('os');
+const ua = require('universal-analytics');
 const log = require('electron-log');
 const { app, BrowserWindow, Tray, Menu, globalShortcut, ipcMain, nativeTheme, screen, dialog, shell, clipboard } = require('electron');
 const AutoLaunch = require('electron-auto-launch');
@@ -13,7 +14,43 @@ let newHRequest;
 let newHInterface;
 const windowPositions = {};
 let userShortcut = "Alt+Space";
-const user = ua('UA-242008654-1');
+const user = ua('UA-242008654-1'); // Production
+// const user = ua('UA-24200854-1'); // Development
+
+async function showLogoutDialog() {
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: 'question',
+    buttons: ['Disable', 'Cancel'],
+    defaultId: 1,
+    title: 'Logout Confirmation',
+    message: 'Disabling chad will log you out of your account.',
+    icon: path.join(__dirname, '../build/icon.png'),
+  });
+
+  if (result.response === 0) {
+    app.quit();
+  }
+}
+
+
+function getUserOSInfo() {
+  const platform = os.platform();
+  const arch = os.arch();
+  const release = os.release();
+
+  return {
+    platform,
+    arch,
+    release
+  };
+}
+
+function sendOSInfoToAnalytics() {
+  const osInfo = getUserOSInfo();
+  user.event("OS Info", "Platform", osInfo.platform).send();
+  user.event("OS Info", "Architecture", osInfo.arch).send();
+  user.event("OS Info", "Release", osInfo.release).send();
+}
 
 
 
@@ -36,6 +73,7 @@ function registerUserShortcut(shortcut) {
       showWindowOnActiveDisplay();
       mainWindow.show();
       user.event('App', 'Opened').send();
+
     }
   });
 }
@@ -87,10 +125,10 @@ function createWindow() {
 
 
   mainWindow = new BrowserWindow({
-    width: 500,
+    width: 650,
     maxWidth: 750,
     minWidth: 500,
-    height: 48,
+    height: 650,
     minHeight: 48,
     frame: false,
     show: true,
@@ -131,7 +169,8 @@ function createWindow() {
 app.on('ready', () => {
   log.info('App version: ', appVersion);
   user.pageview('/').send();
-  const updateInterval = 60 * 60 * 1000; // 1 hour in milliseconds
+  sendOSInfoToAnalytics();
+  const updateInterval = 60 * 60 * 1000;
   setInterval(() => {
     autoUpdater.checkForUpdates();
   }, updateInterval);
@@ -218,7 +257,7 @@ app.on('ready', () => {
   tray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Ask Chad      ⌥ + space',
+      label: 'Ask Chad',
       click: () => {
         mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
       },
@@ -238,7 +277,8 @@ app.on('ready', () => {
     {
       label: 'Disable',
       click: () => {
-        app.quit();
+        mainWindow.show();
+        showLogoutDialog();
       },
     },
   ]);
@@ -261,7 +301,7 @@ app.on('ready', () => {
 
   ipcMain.on("reset-window-height", () => {
     const [width, _] = mainWindow.getSize();
-    mainWindow.setSize(width, newHInterface); // Assuming 48 is your default window height
+    mainWindow.setSize(width, newHInterface);
   });
 
 

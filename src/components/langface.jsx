@@ -237,7 +237,7 @@ export const LangFace = ({ shiftEnterUserInput, setShiftEnterUserInput }) => {
                 value={input}
                 onChange={handleInputChange}
                 className="dark:text-neutral-300 text-neutral-500 placeholder:text-neutral-300 placeholder:dark:text-neutral-500 dark:bg-neutral-700 outline-none rounded-lg w-64 pl-9 pr-10"
-                placeholder="quick search"
+                placeholder="quick web search"
               />
               <div className="absolute inset-y-0 right-0 pr-3 active:scale-95 flex items-center">
                 <button className="outline-none" onClick={handleClearAll}>

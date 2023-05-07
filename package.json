@@ -1,6 +1,6 @@
 {
   "name": "chad",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Easiest way to access ChatGPT",
   "author": "Constitute",
   "private": true,
@@ -18,6 +18,7 @@
     "electron-log": "^4.4.8",
     "electron-notarize": "^1.2.2",
     "electron-updater": "^5.3.0",
+    "firebase": "^9.21.0",
     "postcss": "^8.4.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -40,7 +41,7 @@
     "electron": "electron .",
     "build": "npm run react-build",
     "build-mac": "electron-builder --mac --arm64 --x64 --publish always",
-    "build-win": "electron-builder --win --publish always",
+    "build-win": "electron-builder --win",
     "electron-build": "electron-builder",
     "release": "electron-builder --publish always"
   },

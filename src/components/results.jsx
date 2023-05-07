@@ -5,9 +5,6 @@ import LangInterfaceContext from "../contexts/langfacecontext";
 import { ViewSourcesModal } from "./sourcesmodal";
 import { FaPlus } from "react-icons/fa";
 
-
-
-
 export const Results = () => {
   const ipcRenderer = window.electron ? window.electron.ipcRenderer : null;
   const {
