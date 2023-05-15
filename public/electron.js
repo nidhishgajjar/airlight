@@ -14,23 +14,10 @@ let newHRequest;
 let newHInterface;
 const windowPositions = {};
 let userShortcut = "Alt+Space";
-const user = ua('UA-242008654-1'); // Production
+const isDevelopment = !app.isPackaged;
+// const user = ua('UA-242008654-1'); // Production
 // const user = ua('UA-24200854-1'); // Development
-
-async function showLogoutDialog() {
-  const result = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons: ['Disable', 'Cancel'],
-    defaultId: 1,
-    title: 'Logout Confirmation',
-    message: 'Disabling chad will log you out of your account.',
-    icon: path.join(__dirname, '../build/icon.png'),
-  });
-
-  if (result.response === 0) {
-    app.quit();
-  }
-}
+const user = ua(isDevelopment ? 'UA-24200854-1' : 'UA-242008654-1');
 
 
 function getUserOSInfo() {
@@ -58,12 +45,12 @@ function registerUserShortcut(shortcut) {
   globalShortcut.unregisterAll();
 
   globalShortcut.register(shortcut, () => {
-    if (mainWindow.isVisible() && !mainWindow.isFocused()) {
+    if (mainWindow?.isVisible() && !mainWindow?.isFocused()) {
       showWindowOnActiveDisplay();
       mainWindow.show();
       user.event('App', 'Opened').send();
       mainWindow.focus();
-    } else if (mainWindow.isVisible()) {
+    } else if (mainWindow?.isVisible()) {
       const activeDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
       const displayIdentifier = getDisplayIdentifier(activeDisplay);
       windowPositions[displayIdentifier] = mainWindow.getPosition();
@@ -139,16 +126,21 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       webviewTag: true,
-      preload: path.join(__dirname, '../build/preload.js'),
+      // preload: path.join(__dirname, '../build/preload.js'),
       // preload: path.join(__dirname, '../public/preload.js'),
+      preload: path.join(__dirname, isDevelopment ? '../public/preload.js' : '../build/preload.js'),
     },
     x: 30,
     y: 50,
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
+  // mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
   // mainWindow.loadURL('http://localhost:3000');
   // mainWindow.webContents.openDevTools();
+  mainWindow.loadURL(isDevelopment ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
+  if (isDevelopment) {
+    mainWindow.webContents.openDevTools();
+  }
 
   mainWindow.setOpacity(0.95);
 
@@ -252,20 +244,20 @@ app.on('ready', () => {
     }
   });
 
-  trayIcon = path.join(__dirname, '../build/trayiconTemplate.png');
+  // trayIcon = path.join(__dirname, '../build/trayiconTemplate.png');
   // trayIcon = path.join(__dirname, '../public/trayiconTemplate.png');
+  trayIcon = path.join(__dirname, isDevelopment ? '../public/trayiconTemplate.png' : '../build/trayiconTemplate.png'),
   tray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
-    {
-      label: 'Ask Chad',
+    { label: 'Ask Chad',
       click: () => {
-        mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+        (mainWindow && mainWindow.isVisible()) ? mainWindow.hide() : mainWindow.show();
       },
     },
     {
       label: 'Change Shortcut',
       click: () => {
-        mainWindow.webContents.send('toggle-change-shortcut'); 
+        mainWindow?.webContents.send('toggle-change-shortcut'); 
       },
     },
     {
@@ -277,8 +269,7 @@ app.on('ready', () => {
     {
       label: 'Disable',
       click: () => {
-        mainWindow.show();
-        showLogoutDialog();
+        app.quit();
       },
     },
   ]);

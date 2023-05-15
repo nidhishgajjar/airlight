@@ -1,6 +1,6 @@
 {
   "name": "chad",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Easiest way to access ChatGPT",
   "author": "Constitute",
   "private": true,
@@ -41,14 +41,14 @@
     "electron": "electron .",
     "build": "npm run react-build",
     "build-mac": "electron-builder --mac --arm64 --x64 --publish always",
-    "build-win": "electron-builder --win",
+    "build-win": "electron-builder --win --publish always",
     "electron-build": "electron-builder",
     "release": "electron-builder --publish always"
   },
   "build": {
     "productName": "Chad",
-    "afterSign": "./notarize.js",
     "appId": "ai.constitute.chad",
+    "afterSign": "./notarize.js",
     "asar": true,
     "files": [
       "build/**/*",

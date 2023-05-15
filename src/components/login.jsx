@@ -23,7 +23,7 @@ export function Login({ onLogin, switchToSignUp }) {
     setCustomAlert({ visible: true, message });
     setTimeout(() => {
       setCustomAlert({ visible: false, message: "" });
-    }, 3000);
+    }, 750);
   };
 
   const togglePasswordVisibility = () => {
