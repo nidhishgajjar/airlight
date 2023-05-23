@@ -124,7 +124,7 @@ export const LangFace = ({ shiftEnterUserInput, setShiftEnterUserInput }) => {
   };
 
   const injectEnterKeyListener = useCallback(async () => {
-    const selector = 'textarea[placeholder="Send a message."]';
+    const selector = 'textarea[placeholder="Send a message..."]';
     const enterKeyListenerScript = `
       document.addEventListener('keydown', (event) => {
         const textarea = document.querySelector('${selector}');
@@ -160,7 +160,7 @@ export const LangFace = ({ shiftEnterUserInput, setShiftEnterUserInput }) => {
   const langInterfaceAsk = useCallback (async (shiftEnterUserInput) => {
     if (shiftEnterUserInput) {
       // Replace 'selector' with the appropriate CSS selector for the third-party website's input field
-      const selector = 'textarea[placeholder="Send a message."]';
+      const selector = 'textarea[placeholder="Send a message..."]';
 
       const setInputValueScript = `
       document.querySelector('${selector}').value = \`${shiftEnterUserInput.replace(
@@ -221,7 +221,7 @@ export const LangFace = ({ shiftEnterUserInput, setShiftEnterUserInput }) => {
               <FaRedo className="text-neutral-500" />
             </button>
             <a
-              href="https://ai.com"
+              href="https://chat.openai.com/?model=gpt-4"
               target="_blank"
               rel="noreferrer"
               className="dark:text-neutral-400 text-neutral-500">
@@ -363,7 +363,7 @@ export const LangFace = ({ shiftEnterUserInput, setShiftEnterUserInput }) => {
           <div className="w-full h-full pt-14">
             <webview
               ref={webviewRef}
-              src="https://chat.openai.com"
+              src="https://chat.openai.com/?model=gpt-4"
               className="w-full h-full"
               allowpopups="true"
             />
