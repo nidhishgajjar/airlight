@@ -35,7 +35,6 @@ export const AskBar = () => {
         { url: 'https://zoom.com'},
         { url: 'https://netflix.com'},
     ];
-    console.log("Parsed Apps:", parsedData);
     return parsedData;
   });
 

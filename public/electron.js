@@ -105,7 +105,7 @@ function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   const winY = 50;
   newHRequest = height - winY - 250;
-  newHInterface = height - winY - 100;
+  newHInterface = height - winY - 250;
 
 
   mainWindow = new BrowserWindow({
