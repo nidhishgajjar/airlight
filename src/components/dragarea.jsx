@@ -39,15 +39,6 @@ export const DragArea = () => {
           WebkitAppRegion: "drag",
           userSelect: "none",
         }}>
-          
-        <div
-          className=" w-full mt-10 h-5 items-center flex bg-inherit"
-          onMouseDown={handleMouseDown}
-          style={{
-            WebkitAppRegion: "drag",
-            userSelect: "none",
-          }}>
-        </div>
       </div>
       )}
     </>
