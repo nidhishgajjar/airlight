@@ -5,7 +5,8 @@ import {
   FaArrowLeft,
   FaArrowRight,
   FaHome,
-  FaSync
+  FaSync,
+  FaTimes,
 } from "react-icons/fa";
 
 
@@ -15,15 +16,16 @@ export const AppWindow = ({ googleSearch, setGoogleSearch, activeApp, tabs, setT
   const {
     handleClearClick,
   } = useContext(SearchContext);
-
-  const fixedTabs = [`https://www.google.com/search?q=${encodeURIComponent(googleSearch)}`, 'https://chat.openai.com'];
+  // https://www.perplexity.ai/search?q=helloworld&focus=internet
+  const fixedTabs = [`https://www.perplexity.ai/search?q=${encodeURIComponent(googleSearch)}&focus=internet`, 'https://chat.openai.com'];
   const webviewRefs = useRef({});
+  const [closedTabs, setClosedTabs] = useState([]);
 
   useEffect(() => {
     // Update the Google search tab with the new search query instead of adding a new tab
     let newTabs = tabs.map(tab => {
-      if (tab.startsWith('https://www.google.com/search?q=')) {
-        return `https://www.google.com/search?q=${encodeURIComponent(googleSearch)}`;
+      if (tab.startsWith('https://www.perplexity.ai/search?q=')) {
+        return `https://www.perplexity.ai/search?q=${encodeURIComponent(googleSearch)}&focus=internet`;
       }
       return tab;
     });
@@ -31,11 +33,18 @@ export const AppWindow = ({ googleSearch, setGoogleSearch, activeApp, tabs, setT
     // Add fixed tabs to the tabs array if they're not already there
     fixedTabs.forEach(tab => {
       if (!newTabs.includes(tab)) {
+        // console.log('Adding tab:', tab);
         newTabs.push(tab);
       }
     });
-    setTabs(newTabs);
-  }, [googleSearch, tabs]);  // <-- Add googleSearch as a dependency
+  
+    // Only update tabs if newTabs is different from tabs
+    if (JSON.stringify(newTabs) !== JSON.stringify(tabs)) {
+      setTabs(newTabs);
+    }
+  }, [googleSearch, tabs]); // <-- removed closedTabs as dependency
+  
+  
 
 
 
@@ -54,11 +63,11 @@ export const AppWindow = ({ googleSearch, setGoogleSearch, activeApp, tabs, setT
   
 
   useEffect(() => {
-    if (activeApp && !tabs.includes(activeApp)) {
+    if (activeApp && !tabs.includes(activeApp) && closedTabs.includes(activeApp)) {
       setTabs(prevTabs => [...prevTabs, activeApp]);
       setActiveTab(activeApp);
     }
-  }, [activeApp, tabs]);  // <-- also added tabs as dependency
+  }, [activeApp, tabs, closedTabs]);  // <-- also added closedTabs as dependency
   
 
 
@@ -88,7 +97,25 @@ export const AppWindow = ({ googleSearch, setGoogleSearch, activeApp, tabs, setT
       currentWebview.goForward();
     }
   };
+
+
+  const handleCloseTab = (tabToClose) => {
+    // Prevent closing of fixed tabs
+    if (fixedTabs.includes(tabToClose)) {
+      console.log('Cannot close fixed tab:', tabToClose);
+      return;
+    }
   
+    console.log('Attempting to close:', tabToClose);
+    setTabs(prevTabs => {
+      const newTabs = prevTabs.filter(tab => tab !== tabToClose);
+      console.log('Tabs after closing:', newTabs);
+      if (activeTab === tabToClose && newTabs.length > 0) {
+        setActiveTab(newTabs[0]);
+      }
+      return newTabs;
+    });
+  };
 
 
   return (
@@ -112,12 +139,25 @@ export const AppWindow = ({ googleSearch, setGoogleSearch, activeApp, tabs, setT
                   <FaSync className="text-neutral-500 h-4 w-4 " />
                 </button>
                 {tabs.map((tabUrl) => (
+                  <div key={tabUrl} className="inline-flex items-center group">
                     <button 
-                        key={tabUrl} 
-                        onClick={() => setActiveTab(tabUrl)} 
-                        className={`tab-btn ${activeTab === tabUrl ? 'active' : ''}`}>
-                        <img src={`https://www.google.com/s2/favicons?sz=16&domain=${tabUrl}`} alt="" />
+                      onClick={() => setActiveTab(tabUrl)} 
+                      className={`tab-btn ${activeTab === tabUrl ? 'active' : ''}`}
+                    >
+                      <img src={`https://www.google.com/s2/favicons?sz=16&domain=${tabUrl}`} alt="" />
                     </button>
+                    {!fixedTabs.includes(tabUrl) && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevent setActiveTab from being called
+                          handleCloseTab(tabUrl);
+                        }} 
+                        className="ml-1 mb-6 text-red-500 opacity-0 group-hover:opacity-100"
+                      >
+                        <FaTimes className="w-3 h-3"/>
+                      </button>
+                    )}
+                  </div>
                 ))}
 
               </div>

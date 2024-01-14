@@ -48,8 +48,12 @@ export const AskBar = () => {
 
 
   useEffect(() => {
-    localStorage.setItem('apps', JSON.stringify(apps));
+    // Filter out apps with empty URLs
+    const filteredApps = apps.filter(app => app.url && app.url.trim() !== '');
+  
+    localStorage.setItem('apps', JSON.stringify(filteredApps));
   }, [apps]);
+  
 
   useEffect(() => {
     (async () => {
@@ -143,16 +147,18 @@ export const AskBar = () => {
   const handleKeyDown = async (event) => {
     if (
       event.key === "Enter" &&
-      event.getModifierState("Alt") &&
+      !event.getModifierState("Alt") &&
+      !userInput === "" &&
       quickSearchVisible === false &&
-      changeShortcutVisible === false
+      changeShortcutVisible === false &&
+      editModalVisible === false
     ) {
       event.preventDefault();
 
       if (userInput) { // If there's user input, load it into Google search in the fixed tab
         setQuickSearchVisible(true);
         setGoogleSearch(userInput);
-        setActiveTab(`https://www.google.com/search?q=${encodeURIComponent(userInput)}`); 
+        setActiveTab(`https://www.perplexity.ai/search?q=${encodeURIComponent(userInput)}&focus=internet`); 
       } else { // If there's no user input, just make quickSearchVisible true
         setQuickSearchVisible(true);
       }
@@ -160,10 +166,11 @@ export const AskBar = () => {
      if (
        event.key === "Enter" &&
        !event.shiftKey &&
-       !event.getModifierState("Alt") &&
+       event.getModifierState("Alt") &&
        quickSearchVisible === true &&
        userInput && 
-       changeShortcutVisible === false
+       changeShortcutVisible === false &&
+       editModalVisible === false
      ) {
        event.preventDefault();
        
@@ -173,9 +180,10 @@ export const AskBar = () => {
     if (
       event.key === "Enter" &&
       !event.shiftKey &&
-      !event.getModifierState("Alt") &&
+      event.getModifierState("Alt") &&
       quickSearchVisible === false &&
-      changeShortcutVisible === false
+      changeShortcutVisible === false &&
+      editModalVisible === false
     ) {
       event.preventDefault();
       handleClearClick();
@@ -193,7 +201,7 @@ export const AskBar = () => {
             <textarea
               rows="1"
               autoFocus
-              placeholder="Ask Chad - 'dare to imagine'"
+              placeholder="AirLight - ask anything"
               value={userInput}
               onChange={handleInputWithAdjustment}
               className="w-full px-3 py-1 opacity-90  absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"
@@ -201,7 +209,9 @@ export const AskBar = () => {
             />
           </div>
           <div className="flex overflow-x-scroll mt-16 px-1 whitespace-nowrap">
-          {!loading && loadedApps.map((app, index) => (
+          {!loading && loadedApps
+              .filter(app => app.url.trim() !== '') 
+              .map((app, index) => (
               <button
                 key={index}
                 onClick={() => handleAppClick(app)}

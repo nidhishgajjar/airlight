@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 const EditAppModal = ({ apps, setApps, onClose }) => {
   
   const [localApps, setLocalApps] = useState(apps.map(app => app.url.replace("https://", "")));
+  const ipcRenderer = window.electron ? window.electron.ipcRenderer : null;
   const [hasEmptyField, setHasEmptyField] = useState(false);
 
   useEffect(() => {
@@ -24,41 +25,101 @@ const EditAppModal = ({ apps, setApps, onClose }) => {
   };
 
   const handleSave = () => {
-    // Add the "https://" prefix to each URL when saving to global state
-    const updatedGlobalApps = localApps.map(url => ({ url: "https://" + url.trim() }));
+    const updatedGlobalApps = localApps
+      .filter(url => url.trim() !== '') // Filter out empty URLs
+      .map(url => ({ url: "https://" + url.trim() }));
     setApps(updatedGlobalApps);
+
+    ipcRenderer.send('reset-to-search');
     onClose();
   };
 
+
+  const handleCancel = () => {
+    ipcRenderer.send('reset-to-search');
+    onClose();
+  }
+
+  const handleAddNewApp = () => {
+    setLocalApps([...localApps, ""]); // Add an empty string for the new app URL
+  };
+  
+  
+
+//   return (
+//     <div className="modal bg-white h-full rounded-lg p-6">
+//       <h2 className="text-2xl mb-4">Edit Apps</h2>
+//       {localApps.map((url, index) => (
+//         <div key={index} className="mb-3">
+//           <input 
+//             type="text" 
+//             value={url}
+//             onChange={e => handleChange(e, index)}
+//             className="p-2 border rounded w-full"
+//             placeholder="Enter App URL without 'https://'..."
+//           />
+//         </div>
+//       ))}
+//       <button 
+//         onClick={handleSave} 
+//         className={`bg-blue-500 text-white px-4 py-2 rounded-lg mt-3`}
+//       >
+//         Save
+//       </button>
+//       <button 
+//         onClick={handleCancel} 
+//         className="bg-red-500 text-white px-4 py-2 rounded-lg ml-3"
+//       >
+//         Cancel
+//       </button>
+//     </div>
+//   );
+// };
+
   return (
-    <div className="modal bg-white rounded-lg p-6">
+    <div className="modal bg-white h-full rounded-lg p-6">
       <h2 className="text-2xl mb-4">Edit Apps</h2>
-      {localApps.map((url, index) => (
-        <div key={index} className="mb-3">
-          <input 
-            type="text" 
-            value={url}
-            onChange={e => handleChange(e, index)}
-            className="p-2 border rounded w-full"
-            placeholder="Enter App URL without 'https://'..."
-          />
-        </div>
-      ))}
+
+      <div className="my-4">
+        {localApps.map((url, index) => (
+          <div key={index} className="mb-3">
+            <input 
+              type="text" 
+              value={url}
+              onChange={e => handleChange(e, index)}
+              className="p-2 border rounded w-full"
+              placeholder="Enter App URL without 'https://'..."
+            />
+          </div>
+        ))}
+      </div>
+
       <button 
-        onClick={handleSave} 
-        className={`bg-blue-500 text-white px-4 py-2 rounded-lg mt-3 ${hasEmptyField ? 'opacity-50 cursor-not-allowed' : ''}`}
-        disabled={hasEmptyField}
+        onClick={handleAddNewApp}
+        disabled={localApps.length >= 10}
+        className={`border text-neutral-500 w-full px-4 py-2 mt-3 rounded-lg ${localApps.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        Save
+        + Add New App
       </button>
-      <button 
-        onClick={onClose} 
-        className="bg-red-500 text-white px-4 py-2 rounded-lg ml-3"
-      >
-        Cancel
-      </button>
+
+      <div className="flex justify-end py-10">
+        <button 
+          onClick={handleSave} 
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+        >
+          Save
+        </button>
+        <button 
+          onClick={handleCancel} 
+          className="bg-red-500 text-white px-4 py-2 rounded-lg ml-3"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
+
 };
+
 
 export default EditAppModal;

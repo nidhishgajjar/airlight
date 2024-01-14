@@ -2,11 +2,11 @@ import React, { useState, useContext, useEffect } from "react";
 import LangInterfaceContext from "../contexts/langfacecontext";
 
 export const ShortcutChange = () => {
-  const dummyShortcuts = ["Alt+Space", "Control+Alt+Space", "Shift+Alt+Space"];
+  const dummyShortcuts = ["Option+Space", "Control+Option+Space", "Shift+Option+Space"];
   const [selectedShortcut, setSelectedShortcut] = useState(dummyShortcuts[0]);
+  const { langInterfaceVisible, setLangInterfaceVisible, quickSearchVisible, setQuickSearchVisible, changeShortcutVisible, setChangeShortcutVisible } =
+  useContext(LangInterfaceContext);
 
-  const { changeShortcutVisible, setChangeShortcutVisible } =
-    useContext(LangInterfaceContext);
   const ipcRenderer = window.electron ? window.electron.ipcRenderer : null;
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export const ShortcutChange = () => {
       if (changeShortcutVisible) {
         ipcRenderer.send("set-window-height", 200);
       } else {
-        ipcRenderer.send("reset-window-height");
+        ipcRenderer.send("reset-to-search");
       }
     }
   }, [changeShortcutVisible, ipcRenderer]);
@@ -37,14 +37,18 @@ export const ShortcutChange = () => {
 
   const handleSaveShortcut = () => {
     window.electron.ipcRenderer.send(
-      "update-custom-shortcut",
+      "reset-to-search",
       selectedShortcut
     );
     setChangeShortcutVisible(false);
+    setLangInterfaceVisible(false);
+    setQuickSearchVisible(false);
   };
 
   const handleCancel = () => {
     setChangeShortcutVisible(false);
+    setQuickSearchVisible(false);
+    setLangInterfaceVisible(false);
   };
 
   return (

@@ -103,9 +103,9 @@ function setWindowBackgroundColor() {
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  const winY = 50;
-  newHRequest = height - winY - 250;
-  newHInterface = height - winY - 250;
+  const winY = 30;
+  newHRequest = height - winY - 150;
+  newHInterface = height - winY - 150;
 
 
   mainWindow = new BrowserWindow({
@@ -126,7 +126,7 @@ function createWindow() {
       // preload: path.join(__dirname, '../public/preload.js'),
       preload: path.join(__dirname, isDevelopment ? '../public/preload.js' : '../build/preload.js'),
     },
-    y: 50,
+    y: 30,
   });
 
   mainWindow.center(); 
@@ -164,7 +164,7 @@ app.on('ready', () => {
     autoUpdater.checkForUpdates();
   }, updateInterval);
 
-  const autoLauncher = new AutoLaunch({ name: 'Chad' });
+  const autoLauncher = new AutoLaunch({ name: 'AirLight' });
   autoLauncher.isEnabled().then((isEnabled) => {
     if (!isEnabled) autoLauncher.enable();
   });
@@ -246,7 +246,7 @@ app.on('ready', () => {
   trayIcon = path.join(__dirname, isDevelopment ? '../public/trayiconTemplate.png' : '../build/trayiconTemplate.png'),
   tray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Ask Chad',
+    { label: 'Ask Anything',
       click: () => {
         (mainWindow && mainWindow.isVisible()) ? mainWindow.hide() : mainWindow.show();
       },
@@ -271,7 +271,7 @@ app.on('ready', () => {
     },
   ]);
 
-  tray.setToolTip('Ask Chad');
+  tray.setToolTip('Ask Anything');
   tray.setContextMenu(contextMenu);
 
   registerUserShortcut(userShortcut);
@@ -295,10 +295,13 @@ app.on('ready', () => {
 
   ipcMain.on('increase-window-height', () => {
     const currentBounds = mainWindow.getBounds();
-    mainWindow.setSize(currentBounds.width, 675); // Increase height by 100 pixels or whatever value you desire
+    mainWindow.setSize(currentBounds.width, 775); // Increase height by 100 pixels or whatever value you desire
   });
   
-
+  ipcMain.on('reset-to-search', () => {
+    const currentBounds = mainWindow.getBounds();
+    mainWindow.setSize(currentBounds.width, 48); // Increase height by 100 pixels or whatever value you desire
+  });
 
 
 });

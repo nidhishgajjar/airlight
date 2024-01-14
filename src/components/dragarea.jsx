@@ -33,7 +33,7 @@ export const DragArea = () => {
 
       {quickSearchVisible && (
         <div
-        className="w-full fixed h-4 mt-16 bg-inherit z-50"
+        className="w-full fixed h-10 mt-16 bg-inherit z-50"
         onMouseDown={handleMouseDown}
         style={{
           WebkitAppRegion: "drag",

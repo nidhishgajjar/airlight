@@ -96,7 +96,7 @@ export const LangFace = ({ enterUserInput, setEnterUserInput }) => {
 
 
   const injectEnterKeyListener = useCallback(async () => {
-    const selector = 'textarea[placeholder="Send a message"]';
+    const selector = 'textarea[placeholder="Message ChatGPT..."]';
     const enterKeyListenerScript = `
       document.addEventListener('keydown', (event) => {
         const textarea = document.querySelector('${selector}');
@@ -132,7 +132,7 @@ export const LangFace = ({ enterUserInput, setEnterUserInput }) => {
   const langInterfaceAsk = useCallback (async (shiftEnterUserInput) => {
     if (shiftEnterUserInput) {
       // Replace 'selector' with the appropriate CSS selector for the third-party website's input field
-      const selector = 'textarea[placeholder="Send a message"]';
+      const selector = 'textarea[placeholder="Message ChatGPT..."]';
 
       const setInputValueScript = `
       document.querySelector('${selector}').value = \`${shiftEnterUserInput.replace(
