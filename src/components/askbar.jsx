@@ -25,15 +25,15 @@ export const AskBar = () => {
     const localData = localStorage.getItem('apps');
     const parsedData = localData ? JSON.parse(localData) : [
         { url: 'https://notion.so'},
-        { url: 'https://slack.com'},
-        { url: 'https://pinterest.com'},
-        { url: 'https://twitter.com'},
-        { url: 'https://perplexity.ai'},
-        { url: 'https://mail.google.com'},
+        { url: 'https://chat.openai.com'},
+        { url: 'https://myreader.ai'},
         { url: 'https://youtube.com'},
+        { url: 'https://⁠cognosys.ai'},
+        { url: 'https://twitter.com'},
+        { url: 'https://github.com'},
+        { url: 'https://mail.google.com'},
+        { url: 'https://pinterest.com'},
         { url: 'https://instagram.com'},
-        { url: 'https://zoom.com'},
-        { url: 'https://netflix.com'},
     ];
     return parsedData;
   });
@@ -148,7 +148,7 @@ export const AskBar = () => {
     if (
       event.key === "Enter" &&
       !event.getModifierState("Alt") &&
-      !userInput === "" &&
+      userInput &&
       quickSearchVisible === false &&
       changeShortcutVisible === false &&
       editModalVisible === false
@@ -201,7 +201,7 @@ export const AskBar = () => {
             <textarea
               rows="1"
               autoFocus
-              placeholder="AirLight - ask anything"
+              placeholder="Airlight - ask anything"
               value={userInput}
               onChange={handleInputWithAdjustment}
               className="w-full px-3 py-1 opacity-90  absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"

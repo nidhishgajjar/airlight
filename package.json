@@ -1,6 +1,6 @@
 {
   "name": "air-light",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Modern light weight, more accessible browsing experience.",
   "author": "airlight",
   "private": true,
@@ -46,7 +46,7 @@
     "release": "electron-builder --publish always"
   },
   "build": {
-    "productName": "airlight",
+    "productName": "Airlight",
     "appId": "ai.constitute.chad",
     "afterSign": "./notarize.js",
     "asar": true,

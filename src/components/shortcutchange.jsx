@@ -24,6 +24,12 @@ export const ShortcutChange = () => {
   }, [setChangeShortcutVisible]);
 
 
+   // Function to convert 'Option' back to 'Alt' for IPC message
+  const convertShortcutForIpc = (shortcut) => {
+    return shortcut.replace("Option", "Alt");
+  };
+
+
   useEffect(() => {
     if (ipcRenderer) {
       if (changeShortcutVisible) {
@@ -36,10 +42,17 @@ export const ShortcutChange = () => {
 
 
   const handleSaveShortcut = () => {
+    const shortcutForIpc = convertShortcutForIpc(selectedShortcut);
+
     window.electron.ipcRenderer.send(
-      "reset-to-search",
-      selectedShortcut
+      "reset-to-search"
     );
+
+    window.electron.ipcRenderer.send(
+      "update-custom-shortcut",
+      shortcutForIpc
+    );
+
     setChangeShortcutVisible(false);
     setLangInterfaceVisible(false);
     setQuickSearchVisible(false);
@@ -91,4 +104,4 @@ export const ShortcutChange = () => {
     </>
   );
 };
- 
+  
