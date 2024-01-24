@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import LangInterfaceContext from "../contexts/langfacecontext";
 import SearchContext from "../contexts/search";
 import EditAppModal from './editappmodal';
+import './askbar.css';
 
 import { LangFace } from "./langface";
 import { AppWindow } from "./appwindow";
@@ -24,16 +25,18 @@ export const AskBar = () => {
   const [apps, setApps] = useState(() => {
     const localData = localStorage.getItem('apps');
     const parsedData = localData ? JSON.parse(localData) : [
-        { url: 'https://notion.so'},
+      
         { url: 'https://chat.openai.com'},
-        { url: 'https://myreader.ai'},
-        { url: 'https://youtube.com'},
         { url: 'https://⁠cognosys.ai'},
+        { url: 'https://notion.so'},
         { url: 'https://twitter.com'},
-        { url: 'https://github.com'},
+        { url: 'https://youtube.com'},
+        { url: 'https://myreader.ai'},
         { url: 'https://mail.google.com'},
-        { url: 'https://pinterest.com'},
-        { url: 'https://instagram.com'},
+        { url: 'https://vercel.com'},
+        { url: 'https://stripe.com'},
+        { url: 'https://github.com'},
+
     ];
     return parsedData;
   });
@@ -194,7 +197,7 @@ export const AskBar = () => {
 
 
   return (
-    <div className="flex flex-col h-screen" onKeyDown={handleKeyDown}>
+    <div className="flex flex-col h-screen " onKeyDown={handleKeyDown}>
       {langInterfaceVisible === false && changeShortcutVisible === false && quickSearchVisible === false && editModalVisible == false && (
         <>
           <div>
@@ -204,11 +207,11 @@ export const AskBar = () => {
               placeholder="Airlight - ask anything"
               value={userInput}
               onChange={handleInputWithAdjustment}
-              className="w-full px-3 py-1 opacity-90  absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"
+              className="custom-scrollbar w-full px-3 py-1 opacity-90  absolute bg-neutral-300 placeholder:text-neutral-500 text-neutral-800 dark:bg-neutral-800 placeholder:dark:text-neutral-500 dark:text-neutral-100 text-xl font-helvetica-neue outline-none tracking-wider resize-none overflow-auto max-h-96"
               style={{ lineHeight: "2" }}
             />
           </div>
-          <div className="flex overflow-x-scroll mt-16 px-1 whitespace-nowrap">
+          <div className="custom-scrollbar flex overflow-x-scroll mt-16 px-1 whitespace-nowrap">
           {!loading && loadedApps
               .filter(app => app.url.trim() !== '') 
               .map((app, index) => (

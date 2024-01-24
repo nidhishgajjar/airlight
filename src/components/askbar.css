@@ -1,0 +1,27 @@
+
+
+/* Style the scrollbar - width and background */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 0px; /* Set to 0 or a very small width */
+    height: 0px; /* Set to 0 or a very small height */
+    transition: width 0.3s ease-in-out, height 0.3s ease-in-out; /* Smooth transition for appearing and disappearing */
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+
+/* Handle */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+  
+  /* Handle on hover */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+  
+  
