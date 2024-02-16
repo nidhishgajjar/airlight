@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase.js';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(null);
-
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [showResetStatus, setShowResetStatus] = useState(false);
+  const [resetError, setResetError] = useState(null);
+  const [resetSuccess, setResetSuccess] = useState(null);
 
   const getErrorMessage = (errorCode) => {
     switch (errorCode) {
       case 'auth/user-not-found':
         return 'No user found with this email address.';
+      case 'auth/invalid-email':
+        return 'Email address is not valid.';
       case 'auth/invalid-credential':
         return 'Incorrect password or email. Please try again.';
       case 'auth/too-many-requests':
@@ -23,7 +28,6 @@ const Login = () => {
         return 'Login failed. Please try again.';
     }
   };
-  
 
   const login = async (e) => {
     e.preventDefault();
@@ -36,18 +40,34 @@ const Login = () => {
     }
   };
 
+  const resetPassword = async () => {
+    try {
+      await sendPasswordResetEmail(auth, forgotPasswordEmail);
+      setResetSuccess('Reset password link sent. Please check your email.');
+      setShowResetStatus(true);
+      setResetError(null);
+    } catch (error) {
+      setResetSuccess(null);
+      const friendlyMessage = getErrorMessage(error.code);
+      setResetError(friendlyMessage);
+    }
+  };
+
+
   const openLink = (url) => {
     window.open(url, '_blank');
   };
 
   return (
-    <div className=" p-44 h-screen w-full bg-white rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Login</h2>
+    <div className="p-44 h-screen w-full bg-white  rounded-md shadow-md">
+
+    <div className='flex flex-col justify-center items-center'>
+    <h2 className="text-3xl  mb-7">Sign in to your account</h2>
       <form onSubmit={login}>
         <input
           type="email"
           className="w-full px-4 py-2 mb-4 border rounded-md"
-          placeholder="Email"
+          placeholder="Name@address.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -55,38 +75,73 @@ const Login = () => {
         <input
           type="password"
           className="w-full px-4 py-2 mb-4 border rounded-md"
-          placeholder="Password"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
         <button
           type="submit"
-          className="w-full px-4 py-2 text-white bg-purple-500 rounded-md hover:bg-purple-600"
+          className="w-full mt-2 px-4 py-2 text-white bg-black rounded-md hover:bg-neutral-600"
         >
-          Login
+          Sign in
         </button>
       </form>
+
+    </div>
+      
+  
+      <div className='mt-5 flex justify-between items-center px-5'>
+      <button
+        className=" text-blue-600 hover:text-blue-800"
+        onClick={() => setResetSuccess((prev) => !prev)}
+      >
+        Forgot Password?
+      </button>
+     
+        <button
+          className=" text-blue-600 hover:text-blue-800"
+          onClick={() => openLink('https://airlight.pro/signup')}
+        >
+          Need to create an account?
+        </button>
+      </div>
+
+      {resetSuccess && (
+        <div>
+          <input
+            type="email"
+            className="w-full px-4 py-2 mt-4 border rounded-md"
+            placeholder="Enter your email"
+            value={forgotPasswordEmail}
+            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+          />
+          <button
+            className="px-4 py-2 text-white bg-blue-900 rounded-md hover:bg-blue-700 mt-5"
+            onClick={resetPassword}
+          >
+            Send Reset Email
+          </button>
+        </div>
+      )}
       {loginError && (
         <div className="mt-4 p-2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
           <strong className="font-bold">Error!</strong>
-          <span className="block sm:inline"> {loginError}</span>
+          <span className="block sm:inline">{loginError}</span>
         </div>
       )}
-      <div className="mt-10 flex justify-around">
-        <button
-          className="px-3 py-1 text-white bg-purple-900 rounded-md hover:bg-purple-600"
-          onClick={() => openLink('https://airlight.pro/signup')}
-        >
-          Signup
-        </button>
-        <button
-          className="px-3 py-1 text-white bg-purple-900 rounded-md hover:bg-purple-600"
-          onClick={() => openLink('https://buy.stripe.com/9AQcNC3ib0Zv6xGcMM')}
-        >
-          Subscribe
-        </button>
-      </div>
+      {resetError && (
+        <div className="mt-4 p-2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Reset Error!</strong>
+          <span className="block sm:inline">{resetError}</span>
+        </div>
+      )}
+      {resetSuccess && showResetStatus && (
+        <div className="mt-4 p-2 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Success!</strong>
+          <span className="block sm:inline">{resetSuccess}</span>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import React from 'react';
 import { auth } from '../firebase.js';
-import { signOut } from "firebase/auth"; // Make sure to import signOut
+import { signOut } from "firebase/auth"; // Ensure signOut is imported
 
-const Subscribe = ({ setUser }) => { // Accept setUser as prop
+const Subscribe = ({ setUser }) => { // Accept setUser as a prop
 
     const handleSignOut = () => {
         signOut(auth).then(() => {
@@ -13,26 +13,37 @@ const Subscribe = ({ setUser }) => { // Accept setUser as prop
     };
 
     const openLink = (url) => {
-        window.open(url, '_blank');
+        const user = auth.currentUser;
+        if (user) {
+            const userId = user.uid;
+            const modifiedUrl = url.replace('{userId}', userId);
+            window.open(modifiedUrl, '_blank');
+        } else {
+            console.log("No user signed in.");
+        }
     };
 
     return (
-        <div className="p-44 h-screen w-full bg-white rounded-md shadow-md flex flex-col items-center justify-center">
-            <div className="mb-10 text-xl font-semibold text-gray-800">
-                Trial Expired
+        <div className="p-36 h-screen w-full bg-white rounded-md shadow-md flex flex-col items-center justify-center">
+            <div className="text-4xl mb-5  text-gray-800">
+                Your free trial has ended
             </div>
-            <div className="flex justify-around w-full max-w-md">
-                <button
-                className="px-4 py-2 text-white bg-green-500 rounded-md hover:bg-green-600"
-                onClick={handleSignOut}
+            <h2 className="mb-10 text-md text-gray-800 text-center">
+                To continue using Airlight, click the button below to buy now for lifetime access.
+            </h2>
+            <div className="flex justify-center flex-col w-full max-w-md">
+
+            <button
+                className="px-4 py-2 text-white bg-black rounded-md hover:bg-neutral-600"
+                onClick={() => openLink(`https://airlight.pro/upgrade?userId=`)} // Removed placeholder here since it's handled in openLink
                 >
-                Go to Log In
+                Buy Now
                 </button>
                 <button
-                className="px-4 py-2 text-white bg-purple-900 rounded-md hover:bg-purple-600"
-                onClick={() => openLink('https://buy.stripe.com/9AQcNC3ib0Zv6xGcMM')}
+                className="text-blue-600 hover:text-blue-800 mt-7 hover:underline "
+                onClick={handleSignOut}
                 >
-                Subscribe
+                Go to Sign in
                 </button>
             </div>
         </div>
