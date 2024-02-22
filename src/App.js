@@ -51,7 +51,7 @@ function App() {
     const currentDate = new Date();
     const signUpDateConverted = signUpDate.toDate();
     const allowedTrialEndDate = new Date(signUpDateConverted.getTime());
-    allowedTrialEndDate.setDate(allowedTrialEndDate.getDate() + 15);
+    allowedTrialEndDate.setDate(allowedTrialEndDate.getDate() + 7);
 
     if (paid === true || currentDate <= allowedTrialEndDate) {
       return (

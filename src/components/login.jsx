@@ -59,7 +59,7 @@ const Login = () => {
   };
 
   return (
-    <div className="p-44 h-screen w-full bg-white  rounded-md shadow-md">
+    <div className="p-44 h-screen w-full bg-white rounded-md shadow-md">
 
     <div className='flex flex-col justify-center items-center'>
     <h2 className="text-3xl  mb-7">Sign in to your account</h2>
@@ -108,7 +108,7 @@ const Login = () => {
       </div>
 
       {resetSuccess && (
-        <div>
+        <div className='px-5 mt-2'>
           <input
             type="email"
             className="w-full px-4 py-2 mt-4 border rounded-md"
@@ -117,10 +117,10 @@ const Login = () => {
             onChange={(e) => setForgotPasswordEmail(e.target.value)}
           />
           <button
-            className="px-4 py-2 text-white bg-blue-900 rounded-md hover:bg-blue-700 mt-5"
+            className="px-4 py-2 text-white bg-black rounded-md hover:bg-neutral-700 mt-5"
             onClick={resetPassword}
           >
-            Send Reset Email
+            Send reset email
           </button>
         </div>
       )}
