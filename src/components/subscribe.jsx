@@ -1,12 +1,12 @@
 import React from 'react';
 import { auth } from '../firebase.js';
-import { signOut } from "firebase/auth"; // Ensure signOut is imported
+import { signOut } from "firebase/auth";
 
-const Subscribe = ({ setUser }) => { // Accept setUser as a prop
+const Subscribe = ({ setUser }) => { 
 
     const handleSignOut = () => {
         signOut(auth).then(() => {
-          setUser(null); // Use setUser to update the state in App component
+          setUser(null);
         }).catch((error) => {
           console.error("Sign out error:", error);
         });
@@ -17,6 +17,8 @@ const Subscribe = ({ setUser }) => { // Accept setUser as a prop
         if (user) {
             const userId = user.uid;
             const modifiedUrl = url.replace('{userId}', userId);
+
+            console.log(modifiedUrl)
             window.open(modifiedUrl, '_blank');
         } else {
             console.log("No user signed in.");
@@ -35,9 +37,9 @@ const Subscribe = ({ setUser }) => { // Accept setUser as a prop
 
             <button
                 className="px-4 py-2 text-white bg-black rounded-md hover:bg-neutral-600"
-                onClick={() => openLink(`https://airlight.pro/upgrade?userId=`)} // Removed placeholder here since it's handled in openLink
+                onClick={() => openLink(`https://airlight.pro/upgrade?userId={userId}`)}
                 >
-                Buy Now
+                Buy now
                 </button>
                 <button
                 className="text-blue-600 hover:text-blue-800 mt-7 hover:underline "

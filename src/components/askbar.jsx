@@ -27,7 +27,7 @@ export const AskBar = () => {
     const parsedData = localData ? JSON.parse(localData) : [
       
         { url: 'https://chat.openai.com'},
-        { url: 'https://⁠cognosys.ai'},
+        { url: 'https://claude.ai/chats'},
         { url: 'https://notion.so'},
         { url: 'https://twitter.com'},
         { url: 'https://youtube.com'},
