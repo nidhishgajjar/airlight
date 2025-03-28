@@ -7,9 +7,27 @@ const AutoLaunch = require('electron-auto-launch');
 const { autoUpdater } = require('electron-updater');
 const localShortcut = require('electron-localshortcut');
 const path = require('path');
+const Store = require('electron-store');
 const appVersion = require('../package.json').version;
+
+// Initialize store
+const store = new Store();
+
+// Window state constants
+const VIEW_STATES = {
+  BROWSER: 'browser',
+  AI_AGENT: 'aiAgent'
+};
+
+// Fixed dimensions for search view
+const SEARCH_DIMENSIONS = {
+  width: 750,
+  height: 48
+};
+
 let mainWindow;
 let tray;
+let activeView = 'none'; // Track current active view
 let newHRequest;
 let newHInterface;
 const windowPositions = {};
@@ -17,6 +35,36 @@ let userShortcut = "Alt+Space";
 const isDevelopment = !app.isPackaged;
 const user = ua(isDevelopment ? 'UA-24200854-1' : 'UA-242008654-1');
 
+// Function to calculate default heights based on screen size
+function getDefaultDimensions(viewState) {
+  const { height } = screen.getPrimaryDisplay().workAreaSize;
+  const winY = 30;
+  return {
+    width: 890,
+    height: viewState === VIEW_STATES.BROWSER ? 
+      height - winY - 250 :  // Browser height (original newHRequest)
+      height - winY - 150    // AI Agent height (original newHInterface)
+  };
+}
+
+// Function to save window dimensions
+function saveWindowDimensions(viewState) {
+  const bounds = mainWindow.getBounds();
+  store.set(`windowState.${viewState}`, { 
+    width: bounds.width, 
+    height: bounds.height 
+  });
+}
+
+// Function to get saved dimensions
+function getWindowDimensions(viewState) {
+  const savedState = store.get(`windowState.${viewState}`);
+  if (savedState) {
+    return savedState;
+  }
+  // If no saved state, use default dynamic calculations
+  return getDefaultDimensions(viewState);
+}
 
 function getUserOSInfo() {
   const platform = os.platform();
@@ -36,8 +84,6 @@ function sendOSInfoToAnalytics() {
   user.event("OS Info", "Architecture", osInfo.arch).send();
   user.event("OS Info", "Release", osInfo.release).send();
 }
-
-
 
 function registerUserShortcut(shortcut) {
   globalShortcut.unregisterAll();
@@ -63,7 +109,6 @@ function registerUserShortcut(shortcut) {
   });
 }
 
-
 function getDisplayIdentifier(display) {
   return `${display.id}-${display.bounds.x}-${display.bounds.y}`;
 }
@@ -77,7 +122,7 @@ function showWindowOnActiveDisplay() {
   if (!position) {
     const { y, width } = activeDisplay.bounds;
     const offsetY = 50;
-    position = [Math.round(width / 2), y + offsetY]; // Center horizontally
+    position = [Math.round(width / 5), y + offsetY]; // Center horizontally
   }
 
   if (mainWindow) {
@@ -100,18 +145,17 @@ function setWindowBackgroundColor() {
   }
 }
 
-
 function createWindow() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  const { width } = screen.getPrimaryDisplay().workAreaSize;
   const winY = 30;
-  newHRequest = height - winY - 250;
-  newHInterface = height - winY - 150;
 
-
+  // Get initial dimensions from saved state or use defaults
+  const browserState = getWindowDimensions(VIEW_STATES.BROWSER);
+  
   mainWindow = new BrowserWindow({
-    width: 890,
+    width: browserState.width,
     minWidth: 500,
-    height: 650,
+    height: browserState.height,
     minHeight: 125,
     frame: false,
     show: true,
@@ -129,11 +173,10 @@ function createWindow() {
     y: 30,
   });
 
-  mainWindow.center();
+  // Immediately set to search dimensions since we start in search view
+  mainWindow.setSize(SEARCH_DIMENSIONS.width, SEARCH_DIMENSIONS.height);
 
-  // mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
-  // mainWindow.loadURL('http://localhost:3000');
-  // mainWindow.webContents.openDevTools();
+
   mainWindow.loadURL(isDevelopment ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
   if (isDevelopment) {
     mainWindow.webContents.openDevTools();
@@ -145,15 +188,10 @@ function createWindow() {
     mainWindow = null;
   });
 
-
   localShortcut.register(mainWindow, 'Esc', () => {
     mainWindow.hide();
   });
-
 }
-
-
-
 
 app.on('ready', () => {
   log.info('App version: ', appVersion);
@@ -216,8 +254,8 @@ app.on('ready', () => {
 
     if (result.response === 0) {
       autoUpdater.quitAndInstall(false, true);
-      }
-    });
+    }
+  });
 
   ipcMain.on('open-url', (event, url) => {
     shell.openExternal(url);
@@ -225,32 +263,49 @@ app.on('ready', () => {
   });
 
   ipcMain.on('browserRequested', (event, onRequest) => {
-    const newHeight = onRequest ? newHRequest : 48;
-    const currentWidth = mainWindow.getBounds().width;
-    mainWindow.setSize(currentWidth, newHeight, true);
+    if (onRequest) {
+      activeView = VIEW_STATES.BROWSER;
+      const savedState = getWindowDimensions(VIEW_STATES.BROWSER);
+      mainWindow.setSize(savedState.width, savedState.height, true);
+    } else {
+      activeView = 'none';
+      mainWindow.setSize(SEARCH_DIMENSIONS.width, SEARCH_DIMENSIONS.height, true);
+    }
   });
 
   ipcMain.on('aiAgentRequested', (event, interfaceVisible) => {
     if (interfaceVisible) {
-      const currentWidth = mainWindow.getBounds().width;
-    mainWindow.setSize(currentWidth, newHInterface, true);
-    user.event('App', 'AI Agent Interface Enabled').send();
+      activeView = VIEW_STATES.AI_AGENT;
+      const savedState = getWindowDimensions(VIEW_STATES.AI_AGENT);
+      mainWindow.setSize(savedState.width, savedState.height, true);
+      user.event('App', 'AI Agent Interface Enabled').send();
     }
   });
 
-  ipcMain.on('textarea-height-changed', (event, newHeight) => {
-    const updatedWindowHeight = newHeight;
-
-    mainWindow.setSize(mainWindow.getBounds().width, updatedWindowHeight, true);
+  ipcMain.on('reset-to-search', () => {
+    activeView = 'none';
+    mainWindow.setSize(SEARCH_DIMENSIONS.width, SEARCH_DIMENSIONS.height, true);
   });
 
-  ipcMain.handle("startDrag", (event) => {
-    if (mainWindow) {
-      mainWindow.webContents.startDrag({
-        file: path.join(__dirname, "../build/drag.png"),
-        icon: path.join(__dirname, "../build/drag.png"),
-      });
+  // Save dimensions when window is resized
+  mainWindow.on('resize', () => {
+    const bounds = mainWindow.getBounds();
+    // Only save if we're in a view that should remember dimensions
+    if (activeView !== 'none' && bounds.height !== SEARCH_DIMENSIONS.height) {
+      saveWindowDimensions(activeView);
     }
+  });
+
+  // Remove or modify other size-related IPC handlers that might interfere
+  ipcMain.on("set-window-height", (event, newHeight) => {
+    const [width, _] = mainWindow.getSize();
+    mainWindow.setSize(width, newHeight);
+    mainWindow.show();
+  });
+
+  ipcMain.on('increase-window-height', () => {
+    const currentBounds = mainWindow.getBounds();
+    mainWindow.setSize(currentBounds.width, 775);
   });
 
   // trayIcon = path.join(__dirname, '../build/trayiconTemplate.png');
@@ -289,42 +344,16 @@ app.on('ready', () => {
   registerUserShortcut(userShortcut);
 
   ipcMain.on('update-custom-shortcut', (event, newShortcut) => {
-  userShortcut = newShortcut;
+    userShortcut = newShortcut;
     registerUserShortcut(userShortcut);
   });
-
-  ipcMain.on("set-window-height", (event, newHeight) => {
-    const [width, _] = mainWindow.getSize();
-    mainWindow.setSize(width, newHeight);
-    mainWindow.show();
-  });
-
-  ipcMain.on("reset-window-height", () => {
-    const [width, _] = mainWindow.getSize();
-    mainWindow.setSize(width, newHInterface);
-  });
-
-
-  ipcMain.on('increase-window-height', () => {
-    const currentBounds = mainWindow.getBounds();
-    mainWindow.setSize(currentBounds.width, 775); // Increase height by 100 pixels or whatever value you desire
-  });
-  
-  ipcMain.on('reset-to-search', () => {
-    const currentBounds = mainWindow.getBounds();
-    mainWindow.setSize(currentBounds.width, 48); // Increase height by 100 pixels or whatever value you desire
-  });
-
-
 });
-
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
 
 app.on('activate', () => {
   if (mainWindow === null) {

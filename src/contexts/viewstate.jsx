@@ -8,12 +8,17 @@ export const ViewStateProvider = ({ children }) => {
 
   useEffect(() => {
     if (window.electron) {
-      if (activeView === 'browser') {
-        window.electron.ipcRenderer.send("browserRequested", true);
-      } else if (activeView === 'aiAgent') {
-        window.electron.ipcRenderer.send("aiAgentRequested", true);
-      } else {
-        window.electron.ipcRenderer.send("reset-to-search");
+      switch (activeView) {
+        case 'browser':
+          window.electron.ipcRenderer.send("browserRequested", true);
+          break;
+        case 'aiAgent':
+          window.electron.ipcRenderer.send("aiAgentRequested", true);
+          break;
+        case 'none':
+          // Always reset to search dimensions when going back to search
+          window.electron.ipcRenderer.send("reset-to-search");
+          break;
       }
     }
   }, [activeView]);
